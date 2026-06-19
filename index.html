@@ -1,11 +1,166 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apueste Casero</title>
+    <title>Apueste Casero - Panel de Apuestas</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="index.css">
 </head>
-<body>
-    
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen">
+
+    <nav class="bg-slate-900 border-b border-slate-800 px-4 sm:px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/30 text-emerald-400">
+                    <i data-lucide="dices" class="w-6 h-6"></i>
+                </div>
+                <span class="text-xl font-bold tracking-wider bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                    Apueste Casero
+                </span>
+            </div>
+            <div class="flex items-center gap-2 bg-slate-850 px-3 py-1.5 rounded-full border border-slate-800 text-xs text-slate-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Servidor 
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-400 font-medium">Total de Apuestas</p>
+                    <h3 class="text-3xl font-bold mt-1 text-slate-100" id="stat-total">0</h3>
+                </div>
+                <div class="p-3 bg-blue-500/10 rounded-xl text-blue-400">
+                    <i data-lucide="ticket" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-400 font-medium">Brasil</p>
+                    <h3 class="text-3xl font-bold mt-1 text-emerald-400" id="stat-brasil">0%</h3>
+                </div>
+                <div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-400">
+                    <i data-lucide="trending-up" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-400 font-medium">Haití</p>
+                    <h3 class="text-3xl font-bold mt-1 text-amber-500" id="stat-haiti">0%</h3>
+                </div>
+                <div class="p-3 bg-amber-500/10 rounded-xl text-amber-500">
+                    <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+            <div class="p-6 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-100">Pronósticos de Usuarios</h2>
+                </div>
+                <button onclick="toggleModal(true)" 
+                    class="w-full sm:w-auto justify-center px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 active:scale-[0.98] text-white font-semibold rounded-xl text-sm transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-emerald-950/40">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    Nueva Apuesta
+                </button>
+            </div>
+
+            <div class="overflow-x-auto w-full block scrollbar-thin">
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead>
+                        <tr class="bg-slate-950/50 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-800">
+                            <th class="py-4 px-6">ID</th>
+                            <th class="py-4 px-6">Usuario</th>
+                            <th class="py-4 px-6">Encuentro</th>
+                            <th class="py-4 px-6 text-center">Pronóstico</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-usuarios" class="divide-y divide-slate-800/60 text-slate-300">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="apuesta-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm" onclick="toggleModal(false)"></div>
+        
+        <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+
+            <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-center relative">
+                <button onclick="toggleModal(false)" class="absolute right-4 top-4 text-slate-200 hover:text-white cursor-pointer transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+                <i data-lucide="dice-5" class="w-10 h-10 mx-auto mb-2 text-white animate-bounce"></i>
+                <h3 class="text-xl font-bold text-white">Registrar Apuesta</h3>
+                <p class="text-emerald-100 text-xs mt-1">Sube la información que procesará tu API</p>
+            </div>
+
+            <form id="apuestaForm" class="p-6 space-y-5">
+                <div>
+                    <label for="nombreUsuario" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                        Nombre de Usuario
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </span>
+                        <input type="text" id="nombreUsuario" name="nombreUsuario" required
+                            class="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-base sm:text-sm text-white placeholder-slate-600 transition-all outline-none"
+                            placeholder="Ej. bet_user">
+                    </div>
+                </div>
+
+                <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                    <p class="text-center text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Marcador Exacto</p>
+                    
+                    <div class="grid grid-cols-3 items-center gap-2 justify-items-center">
+                        <div class="text-center space-y-2 w-full flex flex-col items-center">
+                            <input type="hidden" id="paisUno" value="Brasil">
+                            <span class="block text-sm font-bold text-slate-300">Brasil</span>
+                            <input type="number" id="resultadoUno" min="0" required
+                                class="input-marcador w-full max-w-[64px] h-11 text-center text-xl font-bold bg-slate-900 border border-slate-800 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-white outline-none"
+                                placeholder="0">
+                        </div>
+
+                        <div class="text-center self-end pb-3">
+                            <span class="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-[10px] font-bold text-amber-500">
+                                VS
+                            </span>
+                        </div>
+
+                        <div class="text-center space-y-2 w-full flex flex-col items-center">
+                            <input type="hidden" id="paisDos" value="Haiti">
+                            <span class="block text-sm font-bold text-slate-300">Haití</span>
+                            <input type="number" id="resultadoDos" min="0" required
+                                class="input-marcador w-full max-w-[64px] h-11 text-center text-xl font-bold bg-slate-900 border border-slate-800 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-white outline-none"
+                                placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="toggleModal(false)"
+                        class="flex-1 py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-lg text-sm transition-all cursor-pointer text-center">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                        class="flex-1 py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-lg text-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-950/20">
+                        <i data-lucide="check" class="w-4 h-4"></i>
+                        Confirmar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="index.js"></script>
 </body>
 </html>
