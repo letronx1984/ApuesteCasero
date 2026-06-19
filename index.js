@@ -1,7 +1,5 @@
 
-const API_URL = "http://localhost:8003/api/usuarios";
-
-
+const API_URL = "https://6ff3-2001-1388-80d-c3a7-dc3-fdd-24f3-96b1.ngrok-free.app/api/usuarios";
 let ipDispositivoUsuario = "";
 
 
@@ -33,21 +31,27 @@ function obtenerIpDispositivo() {
 
 
 function obtenerUsuariosBackend() {
-    fetch(API_URL)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Error en la petición: ${response.status} ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(usuariosDesdeBD => {
-            console.log("Datos recibidos desde Spring Boot:", usuariosDesdeBD);
-            renderTable(usuariosDesdeBD);
-        })
-        .catch(error => {
-            console.error("Error al conectar con la API (GET):", error);
-            mostrarErrorEnTabla();
-        });
+    fetch(API_URL, {
+        method: "GET", 
+        headers: {
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true" 
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Error en la petición: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(usuariosDesdeBD => {
+        console.log("Datos recibidos desde Spring Boot:", usuariosDesdeBD);
+        renderTable(usuariosDesdeBD);
+    })
+    .catch(error => {
+        console.error("Error al conectar con la API (GET):", error);
+        mostrarErrorEnTabla();
+    });
 }
 
 document.getElementById('apuestaForm').addEventListener('submit', function(e) {
@@ -69,7 +73,8 @@ document.getElementById('apuestaForm').addEventListener('submit', function(e) {
     fetch(API_URL, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true' 
         },
         body: JSON.stringify(nuevaApuesta)
     })
@@ -81,11 +86,7 @@ document.getElementById('apuestaForm').addEventListener('submit', function(e) {
     })
     .then(usuarioGuardado => {
         console.log("Apuesta registrada exitosamente en BD:", usuarioGuardado);
-        
-
         toggleModal(false);
-        
-
         obtenerUsuariosBackend();
     })
     .catch(error => {
@@ -93,7 +94,6 @@ document.getElementById('apuestaForm').addEventListener('submit', function(e) {
         alert("⚠️ Hubo un error al guardar la apuesta. Puede que esta IP o nombre de usuario ya hayan realizado un registro.");
     });
 });
-
 
 function renderTable(listaUsuarios) {
     const tbody = document.getElementById('tabla-usuarios');
