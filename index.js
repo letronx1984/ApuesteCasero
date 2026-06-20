@@ -1,5 +1,6 @@
 
-const API_URL = "https://6ff3-2001-1388-80d-c3a7-dc3-fdd-24f3-96b1.ngrok-free.app/api/usuarios";
+const API_URL = "https://9faa-2800-200-e4a0-ed-e1a3-60a4-16e8-e116.ngrok-free.app/api/usuarios";
+//localhost:8003
 let ipDispositivoUsuario = "";
 
 
@@ -7,9 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
-    
 
-    obtenerIpDispositivo();
+    obtenerIdentificadorDispositivo();
 
 
     obtenerUsuariosBackend();
@@ -25,36 +25,57 @@ function obtenerIpDispositivo() {
         .catch(error => {
             console.error("Error al obtener la IP pública, usando IP de respaldo:", error);
 
-            ipDispositivoUsuario = "127.0.0.1"; 
+            ipDispositivoUsuario = "127.0.0.1";
         });
 }
+function obtenerIdentificadorDispositivo() {
 
+    let deviceId = localStorage.getItem('apueste_casero_device_id');
+
+    if (!deviceId) {
+
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+            deviceId = crypto.randomUUID();
+        } else {
+
+            deviceId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        }
+
+        localStorage.setItem('apueste_casero_device_id', deviceId);
+        console.log("Nuevo identificador de dispositivo generado y guardado:", deviceId);
+    } else {
+        console.log("Dispositivo reconocido con éxito. ID:", deviceId);
+    }
+
+
+    ipDispositivoUsuario = deviceId;
+}
 
 function obtenerUsuariosBackend() {
     fetch(API_URL, {
-        method: "GET", 
+        method: "GET",
         headers: {
             "Content-Type": "application/json",
-            "ngrok-skip-browser-warning": "true" 
+            "ngrok-skip-browser-warning": "true"
         }
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Error en la petición: ${response.status} ${response.statusText}`);
-        }
-        return response.json();
-    })
-    .then(usuariosDesdeBD => {
-        console.log("Datos recibidos desde Spring Boot:", usuariosDesdeBD);
-        renderTable(usuariosDesdeBD);
-    })
-    .catch(error => {
-        console.error("Error al conectar con la API (GET):", error);
-        mostrarErrorEnTabla();
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error en la petición: ${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(usuariosDesdeBD => {
+            console.log("Datos recibidos desde Spring Boot:", usuariosDesdeBD);
+            renderTable(usuariosDesdeBD);
+        })
+        .catch(error => {
+            console.error("Error al conectar con la API (GET):", error);
+            mostrarErrorEnTabla();
+        });
 }
 
-document.getElementById('apuestaForm').addEventListener('submit', function(e) {
+document.getElementById('apuestaForm').addEventListener('submit', function (e) {
     e.preventDefault();
 
 
@@ -62,8 +83,8 @@ document.getElementById('apuestaForm').addEventListener('submit', function(e) {
         nombreUsuario: document.getElementById('nombreUsuario').value,
         paisUno: document.getElementById('paisUno').value,
         paisDos: document.getElementById('paisDos').value,
-        resultadoUno: parseInt(document.getElementById('resultadoUno').value, 10) || 0, 
-        resultadoDos: parseInt(document.getElementById('resultadoDos').value, 10) || 0, 
+        resultadoUno: parseInt(document.getElementById('resultadoUno').value, 10) || 0,
+        resultadoDos: parseInt(document.getElementById('resultadoDos').value, 10) || 0,
         direccionIp: ipDispositivoUsuario
     };
 
@@ -74,25 +95,25 @@ document.getElementById('apuestaForm').addEventListener('submit', function(e) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': 'true' 
+            'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify(nuevaApuesta)
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('No se pudo guardar la apuesta en el servidor.');
-        }
-        return response.json();
-    })
-    .then(usuarioGuardado => {
-        console.log("Apuesta registrada exitosamente en BD:", usuarioGuardado);
-        toggleModal(false);
-        obtenerUsuariosBackend();
-    })
-    .catch(error => {
-        console.error("Error al conectar con la API (POST):", error);
-        alert("⚠️ Hubo un error al guardar la apuesta. Puede que esta IP o nombre de usuario ya hayan realizado un registro.");
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('No se pudo guardar la apuesta en el servidor.');
+            }
+            return response.json();
+        })
+        .then(usuarioGuardado => {
+            console.log("Apuesta registrada exitosamente en BD:", usuarioGuardado);
+            toggleModal(false);
+            obtenerUsuariosBackend();
+        })
+        .catch(error => {
+            console.error("Error al conectar con la API (POST):", error);
+            alert("⚠️ Hubo un error al guardar la apuesta. Puede que esta IP o nombre de usuario ya hayan realizado un registro.");
+        });
 });
 
 function renderTable(listaUsuarios) {
@@ -117,43 +138,35 @@ function renderTable(listaUsuarios) {
     listaUsuarios.forEach(user => {
         if (user.resultadoUno > user.resultadoDos) votosBrasil++;
         else if (user.resultadoDos > user.resultadoUno) votosHaiti++;
-
+    
         const row = document.createElement('tr');
         row.className = "hover:bg-slate-900/40 transition-colors";
         
         row.innerHTML = `
-            <td class="py-4 px-6 text-xs text-slate-500 font-mono font-medium">#${user.idUsuario}</td>
             <td class="py-4 px-6 text-sm font-semibold text-slate-200">
-                <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs text-slate-300 uppercase">
+                <div class="flex items-center gap-2 justify-start">
+                    <div class="w-7 h-7 shrink-0 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs text-slate-300 uppercase">
                         ${user.nombreUsuario ? user.nombreUsuario.charAt(0) : '?'}
                     </div>
-                    <span>${user.nombreUsuario}</span>
+                    <span class="truncate">${user.nombreUsuario}</span>
                 </div>
             </td>
+            
             <td class="py-4 px-6 text-sm">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 justify-center">
                     <span class="text-slate-400 text-xs">🇧🇷 ${user.paisUno}</span>
                     <span class="text-slate-600 text-xs font-bold">vs</span>
                     <span class="text-slate-400 text-xs">🇭🇹 ${user.paisDos}</span>
                 </div>
             </td>
+            
             <td class="py-4 px-6 text-center">
-                <span class="px-3 py-1 bg-slate-950 border border-slate-800 rounded-lg text-sm font-bold text-slate-100 font-mono tracking-wider">
+                <span class="inline-block px-3 py-1 bg-slate-950 border border-slate-800 rounded-lg text-sm font-bold text-slate-100 font-mono tracking-wider">
                     ${user.resultadoUno} - ${user.resultadoDos}
                 </span>
             </td>
-            <td class="py-4 px-6 text-right" hidden=true>
-                <button class="btn-ver-json px-2.5 py-1 text-xs text-slate-400 hover:text-emerald-400 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/20 rounded-md transition-all cursor-pointer">
-                    Ver JSON
-                </button>
-            </td>
         `;
-
-        row.querySelector('.btn-ver-json').addEventListener('click', () => {
-            verPayload(user);
-        });
-
+    
         tbody.appendChild(row);
     });
 
@@ -206,6 +219,9 @@ function toggleModal(show) {
     if (show) {
         modal.classList.remove('hidden');
         document.getElementById('nombreUsuario').focus();
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     } else {
         modal.classList.add('hidden');
         document.getElementById('apuestaForm').reset();
