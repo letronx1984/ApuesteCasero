@@ -1,8 +1,6 @@
-
-const API_URL = "https://9faa-2800-200-e4a0-ed-e1a3-60a4-16e8-e116.ngrok-free.app/api/usuarios";
+const API_URL = "https://37f3-2800-200-e4a0-ed-e1a3-60a4-16e8-e116.ngrok-free.app/api/usuarios";
 //localhost:8003
 let ipDispositivoUsuario = "";
-
 
 document.addEventListener("DOMContentLoaded", () => {
     if (typeof lucide !== 'undefined') {
@@ -10,8 +8,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     obtenerIdentificadorDispositivo();
-
-
     obtenerUsuariosBackend();
 });
 
@@ -24,29 +20,24 @@ function obtenerIpDispositivo() {
         })
         .catch(error => {
             console.error("Error al obtener la IP pública, usando IP de respaldo:", error);
-
             ipDispositivoUsuario = "127.0.0.1";
         });
 }
-function obtenerIdentificadorDispositivo() {
 
+function obtenerIdentificadorDispositivo() {
     let deviceId = localStorage.getItem('apueste_casero_device_id');
 
     if (!deviceId) {
-
         if (typeof crypto !== 'undefined' && crypto.randomUUID) {
             deviceId = crypto.randomUUID();
         } else {
-
             deviceId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         }
-
         localStorage.setItem('apueste_casero_device_id', deviceId);
         console.log("Nuevo identificador de dispositivo generado y guardado:", deviceId);
     } else {
         console.log("Dispositivo reconocido con éxito. ID:", deviceId);
     }
-
 
     ipDispositivoUsuario = deviceId;
 }
@@ -78,7 +69,6 @@ function obtenerUsuariosBackend() {
 document.getElementById('apuestaForm').addEventListener('submit', function (e) {
     e.preventDefault();
 
-
     const nuevaApuesta = {
         nombreUsuario: document.getElementById('nombreUsuario').value,
         paisUno: document.getElementById('paisUno').value,
@@ -89,7 +79,6 @@ document.getElementById('apuestaForm').addEventListener('submit', function (e) {
     };
 
     console.log("Enviando este JSON a Spring Boot:", JSON.stringify(nuevaApuesta));
-
 
     fetch(API_URL, {
         method: 'POST',
@@ -132,16 +121,17 @@ function renderTable(listaUsuarios) {
         return;
     }
 
-    let votosBrasil = 0;
-    let votosHaiti = 0;
+    let votosTurquia = 0;
+    let votosParaguay = 0;
 
     listaUsuarios.forEach(user => {
-        if (user.resultadoUno > user.resultadoDos) votosBrasil++;
-        else if (user.resultadoDos > user.resultadoUno) votosHaiti++;
+        if (user.resultadoUno > user.resultadoDos) votosTurquia++;
+        else if (user.resultadoDos > user.resultadoUno) votosParaguay++;
     
         const row = document.createElement('tr');
         row.className = "hover:bg-slate-900/40 transition-colors";
         
+        // Cambiado visualmente a las banderas y nombres correspondientes: Turquía (🇹🇷) vs Paraguay (🇵🇾)
         row.innerHTML = `
             <td class="py-4 px-6 text-sm font-semibold text-slate-200">
                 <div class="flex items-center gap-2 justify-start">
@@ -154,9 +144,9 @@ function renderTable(listaUsuarios) {
             
             <td class="py-4 px-6 text-sm">
                 <div class="flex items-center gap-2 justify-center">
-                    <span class="text-slate-400 text-xs">🇧🇷 ${user.paisUno}</span>
+                    <span class="text-slate-400 text-xs">🇹🇷 ${user.paisUno || 'Turquía'}</span>
                     <span class="text-slate-600 text-xs font-bold">vs</span>
-                    <span class="text-slate-400 text-xs">🇭🇹 ${user.paisDos}</span>
+                    <span class="text-slate-400 text-xs">🇵🇾 ${user.paisDos || 'Paraguay'}</span>
                 </div>
             </td>
             
@@ -171,27 +161,35 @@ function renderTable(listaUsuarios) {
     });
 
     const total = listaUsuarios.length;
-    const pctBrasil = total > 0 ? Math.round((votosBrasil / total) * 100) : 0;
-    const pctHaiti = total > 0 ? Math.round((votosHaiti / total) * 100) : 0;
+    const pctTurquia = total > 0 ? Math.round((votosTurquia / total) * 100) : 0;
+    const pctParaguay = total > 0 ? Math.round((votosParaguay / total) * 100) : 0;
 
-    actualizarEstadisticas(total, pctBrasil, pctHaiti);
+    actualizarEstadisticas(total, pctTurquia, pctParaguay);
 }
 
-function actualizarEstadisticas(total, pctBrasil, pctHaiti) {
-    document.getElementById('stat-total').innerText = total;
-    document.getElementById('stat-brasil').innerText = `${pctBrasil}%`;
-    document.getElementById('stat-haiti').innerText = `${pctHaiti}%`;
+function actualizarEstadisticas(total, pctTurquia, pctParaguay) {
+    const elTotal = document.getElementById('stat-total');
+    
+    // CORREGIDO: Buscamos usando la primera letra en Mayúscula tal como está en tu HTML
+    const elTurquia = document.getElementById('stat-Turquia') || document.getElementById('stat-turquia');
+    const elParaguay = document.getElementById('stat-Paraguay') || document.getElementById('stat-paraguay');
+
+    if (elTotal) elTotal.innerText = total;
+    if (elTurquia) elTurquia.innerText = `${pctTurquia}%`;
+    if (elParaguay) elParaguay.innerText = `${pctParaguay}%`;
 }
 
 function mostrarErrorEnTabla() {
     const tbody = document.getElementById('tabla-usuarios');
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="5" class="py-8 text-center text-sm text-red-400 font-semibold">
-                ⚠️ No se pudo conectar con el servidor Backend. Verifica que Spring Boot esté levantado.
-            </td>
-        </tr>
-    `;
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="py-8 text-center text-sm text-red-400 font-semibold">
+                    ⚠️ No se pudo conectar con el servidor Backend. Verifica que Spring Boot esté levantado.
+                </td>
+            </tr>
+        `;
+    }
     actualizarEstadisticas("Error", 0, 0);
 }
 
@@ -210,20 +208,26 @@ function verPayload(user) {
 
 function toggleJsonModal(show) {
     const modal = document.getElementById('json-modal');
-    if (show) modal.classList.remove('hidden');
-    else modal.classList.add('hidden');
+    if (modal) {
+        if (show) modal.classList.remove('hidden');
+        else modal.classList.add('hidden');
+    }
 }
 
 function toggleModal(show) {
     const modal = document.getElementById('apuesta-modal');
-    if (show) {
-        modal.classList.remove('hidden');
-        document.getElementById('nombreUsuario').focus();
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
+    if (modal) {
+        if (show) {
+            modal.classList.remove('hidden');
+            const inputNombre = document.getElementById('nombreUsuario');
+            if (inputNombre) inputNombre.focus();
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        } else {
+            modal.classList.add('hidden');
+            const form = document.getElementById('apuestaForm');
+            if (form) form.reset();
         }
-    } else {
-        modal.classList.add('hidden');
-        document.getElementById('apuestaForm').reset();
     }
 }
